@@ -152,12 +152,17 @@ def perceptron(feature_matrix, labels, T):
     theta = np.zeros(p)
     theta_0 = 0
     
+    norm_array = []
+    
     for t in range(T):
         for i in get_order(n):
+            old_theta, old_theta_0 = theta, theta_0
             theta, theta_0 = perceptron_single_step_update(feature_matrix[i, :], labels[i], theta, theta_0)
+            delta_theta_norm = np.linalg.norm(theta - old_theta) + np.abs(theta_0 - old_theta_0)
+            norm_array.append(delta_theta_norm)
             
     # Your code here
-    return (theta, theta_0)
+    return (theta, theta_0, norm_array)
 
 
 
@@ -198,15 +203,20 @@ def average_perceptron(feature_matrix, labels, T):
     theta = np.zeros(p)
     theta_0 = 0
     
+    norm_array = []
+    
     for t in range(T):
         for i in get_order(n):
+            old_theta, old_theta_0 = theta, theta_0
             theta, theta_0 = perceptron_single_step_update(feature_matrix[i, :], labels[i], theta, theta_0)
             theta_0_sum += theta_0
             theta_sum += theta
+            delta_theta_norm = np.linalg.norm(theta_sum/(t*n + i) - old_theta) + np.abs(theta_0_sum/(t*n + i) - old_theta_0)
+            norm_array.append(delta_theta_norm)
     theta_avg = theta_sum / (n*T)
     theta_0_avg = theta_0_sum / (n*T)
     # Your code here
-    return (theta_avg, theta_0_avg)
+    return (theta_avg, theta_0_avg, norm_array)
 
 
 def pegasos_single_step_update(
@@ -280,14 +290,19 @@ def pegasos(feature_matrix, labels, T, L):
     theta = np.zeros(p)
     theta_0 = 0
     
+    norm_array = []
+    
     t = 1
     for k in range(T):
         for i in get_order(n):
+            old_theta, old_theta_0 = theta, theta_0
             eta = 1/np.sqrt(t)
             theta, theta_0 = pegasos_single_step_update(feature_matrix[i, :], labels[i], L, eta, theta, theta_0)
+            delta_theta_norm = np.linalg.norm(theta - old_theta) + np.abs(theta_0 - old_theta_0)
+            norm_array.append(delta_theta_norm)
             t += 1
             
-    return theta, theta_0
+    return theta, theta_0, norm_array
 
 #==============================================================================
 #===  PART II  ================================================================
