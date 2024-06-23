@@ -295,145 +295,158 @@ def pegasos(feature_matrix, labels, T, L):
 
 
 
-##  #pragma: coderesponse template
-##  def decision_function(feature_vector, theta, theta_0):
-##      return np.dot(theta, feature_vector) + theta_0
-##  def classify_vector(feature_vector, theta, theta_0):
-##      return 2*np.heaviside(decision_function(feature_vector, theta, theta_0), 0)-1
-##  #pragma: coderesponse end
+#  #pragma: coderesponse template
+#  def decision_function(feature_vector, theta, theta_0):
+#      return np.dot(theta, feature_vector) + theta_0
+#  def classify_vector(feature_vector, theta, theta_0):
+#      return 2*np.heaviside(decision_function(feature_vector, theta, theta_0), 0)-1
+#  #pragma: coderesponse end
 
 
 
-# def classify(feature_matrix, theta, theta_0):
-#     """
-#     A classification function that uses given parameters to classify a set of
-#     data points.
+def classify(feature_matrix, theta, theta_0):
+    """
+    A classification function that uses given parameters to classify a set of
+    data points.
 
-#     Args:
-#         `feature_matrix` - numpy matrix describing the given data. Each row
-#             represents a single data point.
-#         `theta` - numpy array describing the linear classifier.
-#         `theta_0` - real valued number representing the offset parameter.
+    Args:
+        `feature_matrix` - numpy matrix describing the given data. Each row
+            represents a single data point.
+        `theta` - numpy array describing the linear classifier.
+        `theta_0` - real valued number representing the offset parameter.
 
-#     Returns:
-#         a numpy array of 1s and -1s where the kth element of the array is the
-#         predicted classification of the kth row of the feature matrix using the
-#         given theta and theta_0. If a prediction is GREATER THAN zero, it
-#         should be considered a positive classification.
-#     """
-#     # Your code here
-#     raise NotImplementedError
-
-
-# def classifier_accuracy(
-#         classifier,
-#         train_feature_matrix,
-#         val_feature_matrix,
-#         train_labels,
-#         val_labels,
-#         **kwargs):
-#     """
-#     Trains a linear classifier and computes accuracy.  The classifier is
-#     trained on the train data.  The classifier's accuracy on the train and
-#     validation data is then returned.
-
-#     Args:
-#         `classifier` - A learning function that takes arguments
-#             (feature matrix, labels, **kwargs) and returns (theta, theta_0)
-#         `train_feature_matrix` - A numpy matrix describing the training
-#             data. Each row represents a single data point.
-#         `val_feature_matrix` - A numpy matrix describing the validation
-#             data. Each row represents a single data point.
-#         `train_labels` - A numpy array where the kth element of the array
-#             is the correct classification of the kth row of the training
-#             feature matrix.
-#         `val_labels` - A numpy array where the kth element of the array
-#             is the correct classification of the kth row of the validation
-#             feature matrix.
-#         `kwargs` - Additional named arguments to pass to the classifier
-#             (e.g. T or L)
-
-#     Returns:
-#         a tuple in which the first element is the (scalar) accuracy of the
-#         trained classifier on the training data and the second element is the
-#         accuracy of the trained classifier on the validation data.
-#     """
-#     # Your code here
-#     raise NotImplementedError
+    Returns:
+        a numpy array of 1s and -1s where the kth element of the array is the
+        predicted classification of the kth row of the feature matrix using the
+        given theta and theta_0. If a prediction is GREATER THAN zero, it
+        should be considered a positive classification.
+    """
+    pred = feature_matrix @ theta + theta_0
+    return np.where(pred > 0, 1, -1)
 
 
+def classifier_accuracy(
+        classifier,
+        train_feature_matrix,
+        val_feature_matrix,
+        train_labels,
+        val_labels,
+        **kwargs):
+    """
+    Trains a linear classifier and computes accuracy.  The classifier is
+    trained on the train data.  The classifier's accuracy on the train and
+    validation data is then returned.
 
-# def extract_words(text):
-#     """
-#     Helper function for `bag_of_words(...)`.
-#     Args:
-#         a string `text`.
-#     Returns:
-#         a list of lowercased words in the string, where punctuation and digits
-#         count as their own words.
-#     """
-#     # Your code here
-#     raise NotImplementedError
+    Args:
+        `classifier` - A learning function that takes arguments
+            (feature matrix, labels, **kwargs) and returns (theta, theta_0)
+        `train_feature_matrix` - A numpy matrix describing the training
+            data. Each row represents a single data point.
+        `val_feature_matrix` - A numpy matrix describing the validation
+            data. Each row represents a single data point.
+        `train_labels` - A numpy array where the kth element of the array
+            is the correct classification of the kth row of the training
+            feature matrix.
+        `val_labels` - A numpy array where the kth element of the array
+            is the correct classification of the kth row of the validation
+            feature matrix.
+        `kwargs` - Additional named arguments to pass to the classifier
+            (e.g. T or L)
 
-#     for c in punctuation + digits:
-#         text = text.replace(c, ' ' + c + ' ')
-#     return text.lower().split()
-
-
-
-# def bag_of_words(texts, remove_stopword=False):
-#     """
-#     NOTE: feel free to change this code as guided by Section 3 (e.g. remove
-#     stopwords, add bigrams etc.)
-
-#     Args:
-#         `texts` - a list of natural language strings.
-#     Returns:
-#         a dictionary that maps each word appearing in `texts` to a unique
-#         integer `index`.
-#     """
-#     # Your code here
-#     raise NotImplementedError
+    Returns:
+        a tuple in which the first element is the (scalar) accuracy of the
+        trained classifier on the training data and the second element is the
+        accuracy of the trained classifier on the validation data.
+    """
+        
+    theta, theta_0 = classifier(train_feature_matrix, train_labels, **kwargs)
     
-#     indices_by_word = {}  # maps word to unique index
-#     for text in texts:
-#         word_list = extract_words(text)
-#         for word in word_list:
-#             if word in indices_by_word: continue
-#             if word in stopword: continue
-#             indices_by_word[word] = len(indices_by_word)
-
-#     return indices_by_word
+    preds_train = classify(train_feature_matrix, theta, theta_0)
+    preds_val = classify(val_feature_matrix, theta, theta_0)
+    
+    acc_train = accuracy(preds_train, train_labels)
+    acc_val = accuracy(preds_val, val_labels)
+    
+    return acc_train, acc_val
 
 
+def extract_words(text):
+    """
+    Helper function for `bag_of_words(...)`.
+    Args:
+        a string `text`.
+    Returns:
+        a list of lowercased words in the string, where punctuation and digits
+        count as their own words.
+    """
+    # Your code here
+    raise NotImplementedError
 
-# def extract_bow_feature_vectors(reviews, indices_by_word, binarize=True):
-#     """
-#     Args:
-#         `reviews` - a list of natural language strings
-#         `indices_by_word` - a dictionary of uniquely-indexed words.
-#     Returns:
-#         a matrix representing each review via bag-of-words features.  This
-#         matrix thus has shape (n, m), where n counts reviews and m counts words
-#         in the dictionary.
-#     """
-#     # Your code here
-#     feature_matrix = np.zeros([len(reviews), len(indices_by_word)], dtype=np.float64)
-#     for i, text in enumerate(reviews):
-#         word_list = extract_words(text)
-#         for word in word_list:
-#             if word not in indices_by_word: continue
-#             feature_matrix[i, indices_by_word[word]] += 1
-#     if binarize:
-#         # Your code here
-#         raise NotImplementedError
-#     return feature_matrix
+    for c in punctuation + digits:
+        text = text.replace(c, ' ' + c + ' ')
+    return text.lower().split()
 
 
 
-# def accuracy(preds, targets):
-#     """
-#     Given length-N vectors containing predicted and target labels,
-#     returns the fraction of predictions that are correct.
-#     """
-#     return (preds == targets).mean()
+def bag_of_words(texts, remove_stopword=False):
+    """
+    NOTE: feel free to change this code as guided by Section 3 (e.g. remove
+    stopwords, add bigrams etc.)
+
+    Args:
+        `texts` - a list of natural language strings.
+    Returns:
+        a dictionary that maps each word appearing in `texts` to a unique
+        integer `index`.
+    """
+    # Your code here
+    raise NotImplementedError
+    
+    indices_by_word = {}  # maps word to unique index
+    for text in texts:
+        word_list = extract_words(text)
+        for word in word_list:
+            if word in indices_by_word: continue
+            if word in stopword: continue
+            indices_by_word[word] = len(indices_by_word)
+
+    return indices_by_word
+
+
+
+def extract_bow_feature_vectors(reviews, indices_by_word, binarize=True):
+    """
+    Args:
+        `reviews` - a list of natural language strings
+        `indices_by_word` - a dictionary of uniquely-indexed words.
+    Returns:
+        a matrix representing each review via bag-of-words features.  This
+        matrix thus has shape (n, m), where n counts reviews and m counts words
+        in the dictionary.
+    """
+    # Your code here
+    feature_matrix = np.zeros([len(reviews), len(indices_by_word)], dtype=np.float64)
+    for i, text in enumerate(reviews):
+        word_list = extract_words(text)
+        for word in word_list:
+            if word not in indices_by_word:
+                continue
+            feature_matrix[i, indices_by_word[word]] += 1
+    if binarize:
+        feature_matrix = np.zeros([len(reviews), len(indices_by_word)], dtype=np.float64)
+        for i, text in enumerate(reviews):
+            word_list = extract_words(text)
+            for word in word_list:
+                if word not in indices_by_word:
+                    continue
+                feature_matrix[i, indices_by_word[word]] = 1
+        
+        
+    return feature_matrix
+
+def accuracy(preds, targets):
+    """
+    Given length-N vectors containing predicted and target labels,
+    returns the fraction of predictions that are correct.
+    """
+    return (preds == targets).mean()
