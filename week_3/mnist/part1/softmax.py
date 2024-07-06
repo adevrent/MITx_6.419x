@@ -69,15 +69,7 @@ def compute_cost_function(X, Y, theta, lambda_factor, temp_parameter):
     Returns
         c - the cost value (scalar)
     """
-    n = X.shape[0]
-    d = X.shape[1]
-    k = theta.shape[0]
-    tau = temp_parameter
-    
-    J = 0
-    for j in range(k):
-        if Y[j] == j:
-            raise NotImplementedError
+    raise NotImplementedError
 
 def run_gradient_descent_iteration(X, Y, theta, alpha, lambda_factor, temp_parameter):
     """
