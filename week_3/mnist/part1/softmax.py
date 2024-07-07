@@ -49,7 +49,7 @@ def compute_probabilities(X, theta, temp_parameter):
     
     H = np.apply_along_axis(np.exp, 0, K - c_arr)
     sum_arr = np.apply_along_axis(np.sum, 0, H)[np.newaxis, :]  # converted to row vector
-    H = H / sum_arr
+    H = H / sum_arr  # H has shape (k, n)
 
     return H
 
@@ -67,9 +67,31 @@ def compute_cost_function(X, Y, theta, lambda_factor, temp_parameter):
         temp_parameter - the temperature parameter of softmax function (scalar)
 
     Returns
-        c - the cost value (scalar)
+        J - the cost value (scalar)
     """
-    raise NotImplementedError
+    n, d = X.shape
+    k = theta.shape[0]
+
+    # Compute probabilities matrix H
+    H = compute_probabilities(X, theta, temp_parameter)
+    
+    # Apply natural logarithm to all elements of matrix H
+    H_2 = np.apply_along_axis(np.log, axis=0, arr=H)
+    
+    # Create a filter matrix Y_2 such that if x[i] belongs to label j, Y_2[i, j] = 1, and 0 otherwise.
+    Y_2 = np.zeros((k, n))
+    for i in range(n):
+        Y_2[Y[i], i] = 1
+        
+    """
+    Y_2 == 1 creates a boolean array of the same shape as Y_2, where each element is True if the corresponding element in Y_2 is 1 and False otherwise.
+    H_2[Y_2 == 1] uses this boolean array to index H_2, returning a flattened array of elements where the boolean array is True.
+    """
+    val_sum = np.sum(H_2[Y_2 == 1])  # we get the values sum after boolean indexing.
+    reg = lambda_factor/2 * np.ravel(theta**2).sum()  # regularization term
+    
+    J = -1/n * val_sum + reg
+    return J
 
 def run_gradient_descent_iteration(X, Y, theta, alpha, lambda_factor, temp_parameter):
     """
@@ -88,8 +110,20 @@ def run_gradient_descent_iteration(X, Y, theta, alpha, lambda_factor, temp_param
     Returns:
         theta - (k, d) NumPy array that is the final value of parameters theta
     """
-    #YOUR CODE HERE
-    raise NotImplementedError
+    n, d = X.shape
+    k = theta.shape[0]
+    H = compute_probabilities(X, theta, temp_parameter)  # compute probabilities matrix H
+    gradients_matrix = np.zeros((k, d))
+    # iterate over rows of theta matrix, where theta[m, :] is a vector
+    # representing the parameters of our model for label/class m
+    for m in range(k):
+        y_bool = (Y == m).astype(int).reshape((n, 1))  # create a boolean array, reshape to row vector
+        # each gradient will be a (1, d) row vector
+        gradient = (-1/(temp_parameter*n) * np.sum(X * (y_bool.reshape((n, 1)) - H[m, :].reshape((n, 1))), axis=0) + lambda_factor*theta[m, :]).reshape((1, d))
+        # vertically stack the gradient vectors as rows, will result in a (k, d) gradients matrix
+        gradients_matrix[m, :] = gradient
+    theta = theta - alpha * gradients_matrix
+    return theta
 
 def update_y(train_y, test_y):
     """
@@ -108,8 +142,7 @@ def update_y(train_y, test_y):
         test_y_mod3 - (n, ) NumPy array containing the new labels (a number between 0-2)
                     for each datapoint in the test set
     """
-    #YOUR CODE HERE
-    raise NotImplementedError
+    return (np.mod(train_y, 3), np.mod(test_y, 3))
 
 def compute_test_error_mod3(X, Y, theta, temp_parameter):
     """
@@ -126,8 +159,9 @@ def compute_test_error_mod3(X, Y, theta, temp_parameter):
     Returns:
         test_error - the error rate of the classifier (scalar)
     """
-    #YOUR CODE HERE
-    raise NotImplementedError
+    error_count = 0.
+    assigned_labels = np.mod(get_classification(X, theta, temp_parameter), 3)
+    return 1 - np.mean(assigned_labels == np.mod(Y, 3))
 
 def softmax_regression(X, Y, temp_parameter, alpha, lambda_factor, k, num_iterations):
     """
