@@ -32,6 +32,8 @@ def batchify_data(x_data, y_data, batch_size):
 
 def compute_accuracy(predictions, y):
     """Computes the accuracy of predictions against the gold labels, y."""
+    predictions = predictions.cpu()
+    y = y.cpu()
     return np.mean(np.equal(predictions.numpy(), y.numpy()))
 
 
