@@ -28,7 +28,7 @@ def sum_negative_log_likelihood(alpha, x_arr, initial_var):
     return nll_sum
 
 alpha = 0.5
-x_arr = df["close"]
+x_arr = df["log_return"]
 initial_var = 0.000021
 
 # Minimize the objective function with respect to alpha
