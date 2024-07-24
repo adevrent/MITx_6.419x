@@ -27,11 +27,37 @@ def sum_negative_log_likelihood(alpha, x_arr, initial_var):
     nll_sum = np.sum(negative_log_likelihood(x_arr, var_arr))
     return nll_sum
 
-alpha = 0.5
+alpha_init = 0.5
 x_arr = df["log_return"]
-initial_var = 0.000021
+initial_var = 0.0
 
-# Minimize the objective function with respect to alpha
-result = minimize(sum_negative_log_likelihood, x0=0.2, args=(df["log_return"].values, initial_var), bounds=[(0, 1)])
-optimal_alpha = result.x[0]
-print("optimal_alpha =", optimal_alpha)
+# # Minimize the objective function with respect to alpha
+# result = minimize(sum_negative_log_likelihood, x0=0.2, args=(df["log_return"].values, initial_var), bounds=[(0, 1)])
+# optimal_alpha = result.x[0]
+# print("optimal_alpha =", optimal_alpha)
+
+# Plot
+initial_var_arr = np.linspace(0, 0.5, 10)
+alpha_arr = np.linspace(0, 1, 50)
+print("alpha_arr", alpha_arr)
+
+fig, axs = plt.subplots(1, len(initial_var_arr), figsize=(18, 4))
+
+sum_log_likelihood_array = []
+for initial_var in initial_var_arr:
+    sum_log_likelihood_array.append([-sum_negative_log_likelihood(alpha, df["log_return"], initial_var) for alpha in alpha_arr])
+
+for i, ax in enumerate(axs):
+    ax.plot((1-alpha_arr), sum_log_likelihood_array[i])
+    ax.set_title(f"initial_var = {np.round(initial_var_arr[i], 2)}", fontsize=7)
+    ax.set_xlabel(r'$\lambda$')
+    ax.set_ylabel('$L$')
+
+    # Find the alpha that maximizes the sum of log likelihood
+    max_index = np.argmax(sum_log_likelihood_array[i])
+    max_alpha = alpha_arr[max_index]
+    ax.axvline(x=(1-max_alpha), color='red', linestyle='--')
+    ax.text((1-max_alpha), ax.get_ylim()[0] - 0.05 * (ax.get_ylim()[1] - ax.get_ylim()[0]), f'{1-max_alpha:.2f}', color='red', fontsize=8, ha='center')
+
+plt.tight_layout()
+plt.show()
