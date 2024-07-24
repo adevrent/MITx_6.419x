@@ -27,19 +27,19 @@ def sum_negative_log_likelihood(alpha, x_arr, initial_var):
     nll_sum = np.sum(negative_log_likelihood(x_arr, var_arr))
     return nll_sum
 
-alpha_init = 0.5
 x_arr = df["log_return"]
-initial_var = 0.0
+initial_var = 0.00002150
 
-# # Minimize the objective function with respect to alpha
-# result = minimize(sum_negative_log_likelihood, x0=0.2, args=(df["log_return"].values, initial_var), bounds=[(0, 1)])
-# optimal_alpha = result.x[0]
-# print("optimal_alpha =", optimal_alpha)
+# Minimize the objective function with respect to alpha
+result = minimize(sum_negative_log_likelihood, x0=0.2, args=(df["log_return"].values, initial_var), bounds=[(0, 1)])
+optimal_alpha = result.x[0]
+print("    optimal_alpha =", optimal_alpha)
+print("    optimal_lambda =", 1-optimal_alpha)
 
 # Plot
 initial_var_arr = np.linspace(0, 0.5, 10)
 alpha_arr = np.linspace(0, 1, 50)
-print("alpha_arr", alpha_arr)
+# print("alpha_arr", alpha_arr)
 
 fig, axs = plt.subplots(1, len(initial_var_arr), figsize=(18, 4))
 
