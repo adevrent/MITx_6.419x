@@ -4,7 +4,11 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
 # Load and prepare data
+<<<<<<< HEAD
 filepath = r"C:\Users\Atakan\atakan_python\MITx_6.419x\vol_model_zeynep\baris_vol_data.xlsx"  # change if necessary
+=======
+filepath = r"C:\Users\adevr\MITx_6.419x\vol_model_zeynep\baris_data_close.xlsx"  # change if necessary
+>>>>>>> b261b28c0a941785c6c50ae981b5da35469928e6
 
 df = pd.read_excel(filepath)
 df = df.iloc[::-1]
