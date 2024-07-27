@@ -4,7 +4,7 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
 # Load and prepare data
-filepath = r"C:\Users\Atakan\atakan_python\MITx_6.419x\vol_model_zeynep\vol_data_close.xlsx"  # change if necessary
+filepath = r"C:\Users\Atakan\atakan_python\MITx_6.419x\vol_model_zeynep\baris_vol_data.xlsx"  # change if necessary
 
 df = pd.read_excel(filepath)
 df = df.iloc[::-1]
@@ -28,7 +28,7 @@ def sum_negative_log_likelihood(alpha, x_arr, initial_var):
     return nll_sum
 
 x_arr = df["log_return"]
-initial_var = 0.00002150
+initial_var = 0.00004485
 
 # Minimize the objective function with respect to alpha
 result = minimize(sum_negative_log_likelihood, x0=0.2, args=(df["log_return"].values, initial_var), bounds=[(0, 1)])
