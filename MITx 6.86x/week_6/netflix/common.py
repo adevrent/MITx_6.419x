@@ -29,21 +29,20 @@ def init(X: np.ndarray, K: int,
 
     """
     np.random.seed(seed)
-    n, _ = X.shape
-    p = np.ones(K) / K
+    n, _ = X.shape  # store the number of data points, n
+    p = np.ones(K) / K  # initialize weights such that every cluster weight is equal
 
     # select K random points as initial means
-    mu = X[np.random.choice(n, K, replace=False)]
+    mu = X[np.random.choice(n, K, replace=False)]  # !! random choice as mu
     var = np.zeros(K)
     # Compute variance
     for j in range(K):
-        var[j] = ((X - mu[j])**2).mean()
+        var[j] = ((X - mu[j])**2).mean()  # variance for each cluster, using mu from the previous code.
 
-    mixture = GaussianMixture(mu, var, p)
-    post = np.ones((n, K)) / K
+    mixture = GaussianMixture(mu, var, p)  # create the gaussian mixture with calculated mean, var and weights values.
+    post = np.ones((n, K)) / K  # posterior probability matrix where all probabilities are 1 / K
 
     return mixture, post
-
 
 def plot(X: np.ndarray, mixture: GaussianMixture, post: np.ndarray,
          title: str):
