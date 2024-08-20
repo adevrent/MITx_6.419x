@@ -18,9 +18,9 @@ def estep(X: np.ndarray, mixture: GaussianMixture) -> Tuple[np.ndarray, float]:
         float: log-likelihood of the assignment
     """
     # Get params from GM class
-    mu = mixture.mu
-    var = mixture.var
-    p = mixture.p
+    mu = mixture.mu  # (K, d)
+    var = mixture.var  # (K,)
+    p = mixture.p  # (K,)
     
     # Assign shapes
     n, d = X.shape
@@ -43,7 +43,7 @@ def estep(X: np.ndarray, mixture: GaussianMixture) -> Tuple[np.ndarray, float]:
         diff[~mask] = 0  # Zero out the invalid (missing) dimensions
 
         # Adjust Mahalanobis distance and Gaussian density for missing data
-        mahalanobis_dist = -0.5 * np.sum((diff**2) * mask / var[k], axis=1)  # Shape (n,)
+        mahalanobis_dist = -0.5 * np.sum((diff**2) / var[k], axis=1)  # Shape (n,)
         
         # Adjust the Gaussian density, only for valid dimensions (ignore missing)
         valid_dims = mask.sum(axis=1)  # Number of valid dimensions per observation, shape (n,)
@@ -92,11 +92,37 @@ def mstep(X: np.ndarray, post: np.ndarray, mixture: GaussianMixture,
     
     p = post.mean(axis=0)  # (K,)
     
-    mu = ((X.T @ post) / post.sum(axis=0, keepdims=True)).T  # (K, d)
+    mu = mixture.mu  # Store old mu
+    var = np.zeros(K)  # Initialize var array
     
-    pre_var = X[np.newaxis, :, :] - mu[:, np.newaxis, :]  # (K, n, d)
-    var_norm = (pre_var**2).sum(axis=2)  # (K, n)
-    var = (var_norm.T * post).sum(axis=0) / (d * post.sum(axis=0))  # (K,)
+    # Loop over K clusters
+    for k in range(K):
+        # Calculate the mu_mask
+        mu_mask = ((post[:, k].reshape(-1, 1) * mask).sum(axis=0, keepdims=True) >= 1)  # Shape (1, d)
+        
+        # Proceed only if there are valid dimensions to update
+        if np.any(mu_mask):
+            # Calculate numerator and denominator for valid dimensions
+            numerator = (post[:, k].reshape(-1, 1) * mask * X).sum(axis=0, keepdims=True)  # Shape (1, d)
+            denominator = (post[:, k].reshape(-1, 1) * mask).sum(axis=0, keepdims=True)  # Shape (1, d)
+            
+            # Apply the mask to both numerator and denominator to ensure shapes match
+            mu[k, mu_mask[0, :]] = numerator[0, mu_mask[0, :]] / denominator[0, mu_mask[0, :]]
+        
+        # Compute the variance for valid dimensions
+        valid_dims = mask.sum(axis=1)  # Number of valid dimensions per observation, shape (n,)
+        var_denom = (post[:, k] * valid_dims).sum(axis=0)
+        
+        # Compute difference and zero out invalid dimensions
+        diff = (X - mu[k, :])
+        diff[~mask] = 0
+        
+        # Calculate variance numerator and update
+        var_num = (post[:, k] * (diff**2).sum(axis=1)).sum(axis=0)
+        var[k] = var_num / var_denom
+    
+    # Assign a minimum variance threshold
+    var[var < min_variance] = min_variance
     
     return GaussianMixture(mu=mu, var=var, p=p)
 
@@ -116,7 +142,14 @@ def run(X: np.ndarray, mixture: GaussianMixture,
             for all components for all examples
         float: log-likelihood of the current assignment
     """
-    raise NotImplementedError
+    LL_old = -1e6
+    while True:
+        post, LL = estep(X, mixture)
+        mixture = mstep(X, post, mixture)
+        if (LL - LL_old) / np.abs(LL) < 1e-6:
+            break
+        LL_old = LL
+    return mixture, LL
 
 
 def fill_matrix(X: np.ndarray, mixture: GaussianMixture) -> np.ndarray:
